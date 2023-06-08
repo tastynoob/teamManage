@@ -44,6 +44,15 @@ namespace teamManage
                 member_permission == 1 ? "组长" :
                 member_permission == 2 ? "员工" :
                 "访客");
+
+            if (member_permission == 0)
+            {
+                btn_memberAlloc.Enabled = true;
+            }
+            else
+            {
+                btn_memberAlloc.Enabled = false;
+            }
         }
 
         // edit data
@@ -55,8 +64,6 @@ namespace teamManage
             string value_new = dgv_main[e.ColumnIndex, e.RowIndex].Value.ToString();
 
             string mysql_string = string.Format("update {0} set {1}=\"{2}\" where id={3}", table_name, col_name, value_new, value_id);
-
-            label1.Text = mysql_string;
 
             DataTable? dt = MySqlManage.execute(mysql_string);
 
@@ -103,9 +110,9 @@ namespace teamManage
                 MessageBox.Show(this, "服务器连接失败，请重试");
             }
         }
-        private void btn_memberAlloc_Click(object sender, EventArgs e)
+        private void btn_taskAlloc_Click(object sender, EventArgs e)
         {
-            Form_memberAlloc form_memberAlloc = new Form_memberAlloc(this);
+            Form_taskAlloc form_memberAlloc = new Form_taskAlloc(this);
             form_memberAlloc.ShowDialog();
         }
 
@@ -166,6 +173,18 @@ namespace teamManage
         {
             Form_allDoc form_AllDoc = new Form_allDoc(this);
             form_AllDoc.ShowDialog();
+        }
+
+        private void btn_memberAlloc_Click(object sender, EventArgs e)
+        {
+            Form_memberAlloc form_MemberAlloc = new Form_memberAlloc(this);
+            form_MemberAlloc.ShowDialog();
+        }
+
+        private void btn_report_Click(object sender, EventArgs e)
+        {
+            Form_report form_Report = new Form_report(this);
+            form_Report.ShowDialog();
         }
     }
 }

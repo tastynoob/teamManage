@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FreeSpire.XLS" Version="12.7.0" />
     <PackageReference Include="MySql.Data" Version="8.0.33" />
   </ItemGroup>
 

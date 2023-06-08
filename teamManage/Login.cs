@@ -31,7 +31,7 @@ namespace teamManage
                 builder.Server = "10.148.13.3";
                 //连接时的数据库
                 builder.Database = "teammanage";
-                builder.ConnectionTimeout = 1000;
+                builder.ConnectionTimeout = 100;
 
                 if (!MySqlManage.connect(builder.ConnectionString))
                 {

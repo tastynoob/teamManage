@@ -14,150 +14,67 @@ namespace teamManage
     public partial class Form_memberAlloc : Form
     {
         MainForm mainForm;
-
-
-        System.Windows.Forms.ComboBox comboBox = new System.Windows.Forms.ComboBox();
-
-        bool isShow_yourtasks = false;
         public Form_memberAlloc(MainForm mainForm)
         {
             this.mainForm = mainForm;
             InitializeComponent();
 
-            comboBox.Items.AddRange(new string[] { "未完成", "正在进行中", "已完成" });
-            comboBox.SelectedIndexChanged += this.comboBox_SelectedIndexChanged;
-            comboBox.Visible = false;
-            dgv_data.Controls.Add(comboBox);
 
-            string sqlcmd0 = string.Format("select department from memberlist where id = {0};", mainForm.member_id);
-            string sqlcmd1 = string.Format("select count(*) from tasklist where member_id = {0};", mainForm.member_id);
-            DataTable? dt0 = MySqlManage.execute(sqlcmd0);
-            string department = dt0.Rows[0][0].ToString();
-
-            DataTable? dt1 = MySqlManage.execute(sqlcmd1);
-            string taskcount;
-            if (dt1.Rows.Count > 0)
-            {
-                taskcount = dt1.Rows[0][0].ToString();
-            }
-            else
-            {
-                taskcount = "0";
-            }
-
-            label_memberStatus.Text = string.Format("部门：{0}，你的任务数量：{1}", department, taskcount);
-
-            isShow_yourtasks = false;
-        }
-
-        private void btn_search_name_Click(object sender, EventArgs e)
-        {
-            // search by member name
-            string val = textBox_val.Text;
-            string sqlcmd = string.Format("select tl.id,pl.project_name,tl.description,ml.name as member_name " +
-                "from tasklist tl,projectlist pl, memberlist ml " +
-                "where tl.member_id = ml.id and tl.project_id=pl.id and ml.name like \"%{0}%\" ", val);
-
+            string sqlcmd = "select * from memberlist";
             DataTable? dt = MySqlManage.execute(sqlcmd);
-            dgv_data.ReadOnly = true;
-            if (dt != null && dt.Rows.Count > 0)
-            {
-                dgv_data.DataSource = dt;
-            }
-            else
-            {
-                dgv_data.DataSource = null;
-            }
 
-            isShow_yourtasks = false;
+            dgv_data.DataSource = dt;
         }
 
-        // search by task name
-        private void btn_search_task_Click(object sender, EventArgs e)
+        private void dgv_data_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            string val = textBox_val.Text;
-            string sqlcmd = string.Format("select tl.id,pl.project_name,tl.description,ml.name as member_name " +
-                "from tasklist tl,projectlist pl, memberlist ml " +
-                "where tl.member_id = ml.id and tl.project_id=pl.id and tl.description like \"%{0}%\" ", val);
-
-            DataTable? dt = MySqlManage.execute(sqlcmd);
-            dgv_data.ReadOnly = true;
-            if (dt != null && dt.Rows.Count > 0)
-            {
-                dgv_data.DataSource = dt;
-            }
-            else
-            {
-                dgv_data.DataSource = null;
-            }
-
-            isShow_yourtasks = false;
-        }
-
-        private void btn_yourtasks_Click(object sender, EventArgs e)
-        {
-            string val = mainForm.member_id.ToString();
-            string sqlcmd = string.Format("select id,description,note,status,start_time,end_time from tasklist where member_id={0};", val);
-
-            DataTable? dt = MySqlManage.execute(sqlcmd);
-            dgv_data.ReadOnly = false;
-            if (dt != null && dt.Rows.Count > 0)
-            {
-                dgv_data.DataSource = dt;
-                isShow_yourtasks = true;
-            }
-            else
-            {
-                dgv_data.DataSource = null;
-            }
-        }
-
-        private void dgv_data_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            DataGridViewColumn column = dgv_data.CurrentCell.OwningColumn;
-            //如果是要显示下拉列表的列的话
-            if (column.Name.Equals("status") && isShow_yourtasks)
+            string col_name = dgv_data.CurrentCell.OwningColumn.Name;
+            //edit data
+            if (col_name.Equals("permission") || col_name.Equals("account"))
             {
                 int columnIndex = dgv_data.CurrentCell.ColumnIndex;
                 int rowIndex = dgv_data.CurrentCell.RowIndex;
-                Rectangle rect = dgv_data.GetCellDisplayRectangle(columnIndex, rowIndex, false);
-                comboBox.Left = rect.Left;
-                comboBox.Top = rect.Top;
-                comboBox.Width = rect.Width;
-                comboBox.Height = rect.Height;
+
                 //将单元格的内容显示为下拉列表的当前项
-                string consultingRoom = dgv_data.Rows[rowIndex].Cells[columnIndex].Value.ToString();
-                int index = comboBox.Items.IndexOf(consultingRoom);
+                string id = dgv_data.Rows[rowIndex].Cells[0].Value.ToString();
+                string new_value = dgv_data.Rows[rowIndex].Cells[columnIndex].Value.ToString();
 
-                comboBox.SelectedIndex = index;
-                comboBox.Visible = true;
-            }
-            else
-            {
-                comboBox.Visible = false;
-            }
-        }
-
-        // update status of task
-        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (dgv_data.CurrentCell != null)
-            {
-                int columnIndex = 0;
-                int rowIndex = dgv_data.CurrentCell.RowIndex;
-                string id = dgv_data.Rows[rowIndex].Cells[columnIndex].Value.ToString();
-
-                dgv_data.CurrentCell.Value = comboBox.Items[comboBox.SelectedIndex];
-
-                string sqlcmd = string.Format("update tasklist set status=\"{0}\" where id={1};", dgv_data.CurrentCell.Value.ToString(), id);
-
+                string sqlcmd = string.Format("update memberlist set {0}={1} where id={2}", col_name, new_value, id);
                 DataTable? dt = MySqlManage.execute(sqlcmd);
-                if (dt == null)
+                if (dt != null)
+                {
+                    sqlcmd = "select * from memberlist";
+                    dt = MySqlManage.execute(sqlcmd);
+                    dgv_data.DataSource = dt;
+                }
+                else
                 {
                     MessageBox.Show(this, "修改失败！");
                 }
-
             }
+            else if (col_name.Equals("department"))
+            {
+                int columnIndex = dgv_data.CurrentCell.ColumnIndex;
+                int rowIndex = dgv_data.CurrentCell.RowIndex;
+
+                //将单元格的内容显示为下拉列表的当前项
+                string id = dgv_data.Rows[rowIndex].Cells[0].Value.ToString();
+                string new_value = dgv_data.Rows[rowIndex].Cells[columnIndex].Value.ToString();
+
+                string sqlcmd = string.Format("update memberlist set {0}=\"{1}\" where id={2}", col_name, new_value, id);
+                DataTable? dt = MySqlManage.execute(sqlcmd);
+                if (dt != null)
+                {
+                    sqlcmd = "select * from memberlist";
+                    dt = MySqlManage.execute(sqlcmd);
+                    dgv_data.DataSource = dt;
+                }
+                else
+                {
+                    MessageBox.Show(this, "修改失败！");
+                }
+            }
+
         }
     }
 }
